@@ -7,8 +7,19 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Laravel\Passport\Contracts\OAuthenticatable;
 
+/**
+ * App\Models\User
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * ...
+ *
+ * // Optional: help Intelephense understand Spatie methods
+ * @method bool hasRole(string|array $roles)
+ * @method \Spatie\Permission\Contracts\Role|null getRoleNames()
+ */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;

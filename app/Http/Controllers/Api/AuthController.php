@@ -26,13 +26,22 @@ class AuthController extends Controller
 
         $user->assignRole('user');
 
-        $token = $user->createToken('token')->accessToken;
+        // Buat token dengan masa berlaku 1 hari
+        $tokenResult = $user->createToken('token');
+        $token = $tokenResult->accessToken;
+
+        // atur expire
+        $tokenModel = $tokenResult->token;
+        $tokenModel->expires_at = now()->addDay(); // 1 hari
+        $tokenModel->save();
 
         return response()->json([
             'message' => 'Register berhasil',
             'token' => $token,
+            'expired_at' => $tokenModel->expires_at->toDateTimeString(),
         ]);
     }
+
 
     public function login(Request $request)
     {
@@ -49,11 +58,28 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $user->createToken('token')->accessToken;
+        // Buat token dengan masa berlaku 1 hari
+        $tokenResult = $user->createToken('token');
+        $token = $tokenResult->accessToken;
+
+        $tokenModel = $tokenResult->token;
+        $tokenModel->expires_at = now()->addDay(); // 1 hari
+        $tokenModel->save();
 
         return response()->json([
             'message' => 'Login berhasil',
             'token' => $token,
+            'expired_at' => $tokenModel->expires_at->toDateTimeString(),
         ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $token = $request->user()->token();
+        $token->revoke();
+
+        return response()->json([
+            'message' => 'Logout berhasil'
+        ], 200);
     }
 }

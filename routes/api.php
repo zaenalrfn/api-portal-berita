@@ -13,15 +13,20 @@ Route::post('/login', [AuthController::class, 'login']);
 // Public
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/news/{id}', [NewsController::class, 'show']);
+Route::get('/comments', [CommentController::class, 'index']);
+Route::get('/comments/{id}', [CommentController::class, 'show']);
 
 // Authenticated users only
 Route::middleware('auth:api')->group(function () {
-
-    // Komentar hanya untuk user login
-    Route::post('/comments', [CommentController::class, 'store']);
-
-    // CRUD berita hanya admin
+    // AUTH Logout
+    Route::post('/logout', [AuthController::class, 'logout']);
+    // CRUD berita
     Route::post('/news', [NewsController::class, 'store']);
     Route::put('/news/{id}', [NewsController::class, 'update']);
     Route::delete('/news/{id}', [NewsController::class, 'destroy']);
+
+    // CRUD komentar
+    Route::post('/comments', [CommentController::class, 'store']);
+    Route::put('/comments/{id}', [CommentController::class, 'update']);
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
 });
