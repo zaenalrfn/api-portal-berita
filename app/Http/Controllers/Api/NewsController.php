@@ -23,7 +23,7 @@ class NewsController extends Controller
      */
     public function index(Request $request)
     {
-        $news = News::with('comments.user')->latest('created_at')->paginate(10);
+        $news = News::with('user', 'comments.user')->latest('created_at')->paginate(10);
 
         return response()->json([
             'message' => 'Daftar berita',
@@ -92,7 +92,7 @@ class NewsController extends Controller
      */
     public function show(string $id)
     {
-        $news = News::with('comments.user')->find($id);
+        $news = News::with('user', 'comments.user')->find($id);
 
         if (! $news) {
             return response()->json([

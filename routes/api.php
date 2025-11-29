@@ -18,6 +18,8 @@ Route::get('/comments/{id}', [CommentController::class, 'show']);
 
 // Authenticated users only
 Route::middleware('auth:api')->group(function () {
+    // AUTH Get User
+    Route::get('/user', [AuthController::class, 'getUser']);
     // AUTH Logout
     Route::post('/logout', [AuthController::class, 'logout']);
     // CRUD berita

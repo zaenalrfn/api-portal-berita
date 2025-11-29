@@ -73,6 +73,11 @@ class AuthController extends Controller
         ]);
     }
 
+    public function getUser(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
     public function logout(Request $request)
     {
         $token = $request->user()->token();
