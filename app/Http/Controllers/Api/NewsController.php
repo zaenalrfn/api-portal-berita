@@ -25,10 +25,28 @@ class NewsController extends Controller
     {
         $news = News::with('user', 'comments.user')->latest('created_at')->paginate(10);
 
+
         return response()->json([
             'message' => 'Daftar berita',
             'status' => true,
             'data' => $news
+        ], 200);
+    }
+
+    public function getTotalUserNews(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated',
+                'status' => false,
+            ], 401);
+        }
+        $totalUserNews = News::where('user_id', $user->id)->count();
+        return response()->json([
+            'message' => 'Total berita pengguna',
+            'status' => true,
+            'total' => $totalUserNews
         ], 200);
     }
 

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Models\News;
 
 class AuthController extends Controller
 {
@@ -75,7 +76,13 @@ class AuthController extends Controller
 
     public function getUser(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        $totalUserNews = News::where('user_id', $user->id)->count();
+        return response()->json([
+            'status' => true,
+            'user' => $user,
+            'total_news' => $totalUserNews ?? 0
+        ]);
     }
 
     public function logout(Request $request)
