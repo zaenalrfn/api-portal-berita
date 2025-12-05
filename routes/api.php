@@ -6,6 +6,16 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\NewsController;
 use App\Http\Controllers\Api\CommentController;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+
+Route::options('/storage/{path}', function () {
+    return response('', 200)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
+        ->header('Access-Control-Allow-Headers', '*');
+})->where('path', '.*');
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -20,6 +30,9 @@ Route::get('/comments/{id}', [CommentController::class, 'show']);
 Route::middleware('auth:api')->group(function () {
     // AUTH Get User
     Route::get('/user', [AuthController::class, 'getUser']);
+
+    // GET news user
+    Route::get('/user/news', [NewsController::class, 'getUserNews']);
 
     // Get total news by user ID
     Route::get('/news/user/total', [NewsController::class, 'getTotalUserNews']);

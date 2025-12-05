@@ -22,6 +22,20 @@ class News extends Model
         'published_at' => 'datetime',
     ];
 
+
+    // PENTING: Tambahkan ini
+    protected $appends = ['thumbnail_url'];
+
+    // PENTING: Pastikan ini menggunakan /api/images/ bukan /storage/
+    public function getThumbnailUrlAttribute()
+    {
+        if ($this->thumbnail) {
+            // GANTI INI - jangan pakai /storage/
+            return config('app.url') . '/storage/' . $this->thumbnail;
+        }
+
+        return null;
+    }
     // News dimiliki oleh User
     public function user()
     {

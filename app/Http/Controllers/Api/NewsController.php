@@ -25,12 +25,76 @@ class NewsController extends Controller
     {
         $news = News::with('user', 'comments.user')->latest('created_at')->paginate(10);
 
+        $news->getCollection()->transform(function ($item) {
+            $item->thumbnail_url = $item->thumbnail
+                ? config('app.url') . '/storage/' . $item->thumbnail
+                : null;
+            return $item;
+        });
 
         return response()->json([
             'message' => 'Daftar berita',
             'status' => true,
             'data' => $news
         ], 200);
+    }
+
+    public function getUserNews(Request $request)
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json([
+                'message' => 'Unauthenticated',
+                'status' => false,
+            ], 401);
+        }
+
+        $perPage = (int) $request->query('per_page', 5);
+        $perPage = $perPage > 0 ? $perPage : 5;
+
+        // Query news milik user, terbaru dulu
+        $query = News::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc');
+
+        $paginated = $query->paginate($perPage);
+
+        // Map tiap item supaya thumbnail jadi URL lengkap (jika ada)
+        $items = $paginated->getCollection()->map(function (News $n) {
+            $thumb = null;
+            if (!empty($n->thumbnail)) {
+                // jika kamu menyimpan 'thumbnails/filename.png' di storage/app/public
+                // Storage::url akan menghasilkan '/storage/thumbnails/filename.png'
+                $thumb = Storage::url($n->thumbnail); // contoh "/storage/thumbnails/..."
+                // Jika perlu full URL (include app url), kamu bisa gunakan asset():
+                $thumb = asset($thumb);
+            }
+
+            return [
+                'id' => $n->id,
+                'user_id' => $n->user_id,
+                'title' => $n->title,
+                'slug' => $n->slug,
+                'content' => $n->content,
+                'thumbnail' => $thumb,
+                'created_at' => $n->created_at ? $n->created_at->toDateTimeString() : null,
+                'updated_at' => $n->updated_at ? $n->updated_at->toDateTimeString() : null,
+            ];
+        })->toArray();
+
+        $response = [
+            'message' => 'Daftar berita pengguna',
+            'status' => true,
+            'data' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+                'data' => $items,
+            ],
+        ];
+
+        return response()->json($response);
     }
 
     public function getTotalUserNews(Request $request)
