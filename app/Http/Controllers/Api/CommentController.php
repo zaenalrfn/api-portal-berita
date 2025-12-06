@@ -32,6 +32,22 @@ class CommentController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     * path="/api/comments",
+     * tags={"Comments"},
+     * summary="Kirim Komentar",
+     * security={{"apiAuth":{}}},
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * @OA\Property(property="news_id", type="integer", example=1),
+     * @OA\Property(property="body", type="string", example="Wah artikelnya bagus!")
+     * )
+     * ),
+     * @OA\Response(response="201", description="Komentar terkirim")
+     * )
+     */
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [

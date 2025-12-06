@@ -21,6 +21,15 @@ class NewsController extends Controller
     /**
      * Display a listing of the resource.
      */
+    /**
+     * @OA\Get(
+     * path="/api/news",
+     * tags={"News"},
+     * summary="Dapatkan semua berita",
+     * description="Mengambil daftar berita terbaru (Public)",
+     * @OA\Response(response="200", description="List Berita berhasil diambil")
+     * )
+     */
     public function index(Request $request)
     {
         $news = News::with('user', 'comments.user')->latest('created_at')->paginate(10);
@@ -117,6 +126,28 @@ class NewsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
+    /**
+     * @OA\Post(
+     * path="/api/news",
+     * tags={"News"},
+     * summary="Buat berita baru",
+     * security={{"apiAuth":{}}},
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\MediaType(
+     * mediaType="multipart/form-data",
+     * @OA\Schema(
+     * @OA\Property(property="title", type="string", example="Judul Berita Heboh"),
+     * @OA\Property(property="content", type="string", example="Isi konten berita..."),
+     * @OA\Property(property="image", type="string", format="binary", description="File gambar upload"),
+     * )
+     * )
+     * ),
+     * @OA\Response(response="201", description="Berita berhasil dibuat"),
+     * @OA\Response(response="401", description="Unauthenticated")
+     * )
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -171,6 +202,21 @@ class NewsController extends Controller
 
     /**
      * Display the specified resource.
+     */
+    /**
+     * @OA\Get(
+     * path="/api/news/{id}",
+     * tags={"News"},
+     * summary="Lihat detail berita",
+     * @OA\Parameter(
+     * name="id",
+     * in="path",
+     * required=true,
+     * description="ID Berita",
+     * @OA\Schema(type="integer")
+     * ),
+     * @OA\Response(response="200", description="Detail Berita")
+     * )
      */
     public function show(string $id)
     {

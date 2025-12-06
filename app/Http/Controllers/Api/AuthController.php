@@ -13,6 +13,26 @@ use Carbon\Carbon;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Post(
+     * path="/api/register",
+     * tags={"Authentication"},
+     * summary="Daftar akun baru",
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\MediaType(
+     * mediaType="multipart/form-data",
+     * @OA\Schema(
+     * @OA\Property(property="name", type="string", example="Budi"),
+     * @OA\Property(property="email", type="string", format="email", example="budi@mail.com"),
+     * @OA\Property(property="password", type="string", format="password", example="secret123"),
+     * @OA\Property(property="password_confirmation", type="string", format="password", example="secret123"),
+     * )
+     * )
+     * ),
+     * @OA\Response(response="201", description="Registrasi Berhasil")
+     * )
+     */
     public function register(Request $request)
     {
         $data = $request->validate([
@@ -49,6 +69,26 @@ class AuthController extends Controller
         ], 201);
     }
 
+    /**
+     * @OA\Post(
+     * path="/api/login",
+     * tags={"Authentication"},
+     * summary="Masuk ke dalam sistem",
+     * description="Login user dan kembalikan token",
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\MediaType(
+     * mediaType="multipart/form-data",
+     * @OA\Schema(
+     * @OA\Property(property="email", type="string", format="email", example="user@mail.com"),
+     * @OA\Property(property="password", type="string", format="password", example="secret123"),
+     * )
+     * )
+     * ),
+     * @OA\Response(response="200", description="Login Berhasil"),
+     * @OA\Response(response="401", description="Unauthorized")
+     * )
+     */
     public function login(Request $request)
     {
         $data = $request->validate([
@@ -82,6 +122,15 @@ class AuthController extends Controller
         ], 200);
     }
 
+    /**
+     * @OA\Get(
+     * path="/api/user",
+     * tags={"Authentication"},
+     * summary="Ambil data user yang sedang login",
+     * security={{"apiAuth":{}}},
+     * @OA\Response(response="200", description="Data User")
+     * )
+     */
     public function getUser(Request $request)
     {
         $user = $request->user();
@@ -94,6 +143,15 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     * path="/api/logout",
+     * tags={"Authentication"},
+     * summary="Keluar dari sistem",
+     * security={{"apiAuth":{}}},
+     * @OA\Response(response="200", description="Logout Berhasil")
+     * )
+     */
     public function logout(Request $request)
     {
         // ambil access token model
