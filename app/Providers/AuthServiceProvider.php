@@ -25,6 +25,6 @@ class AuthServiceProvider extends ServiceProvider
         Passport::refreshTokensExpireIn(now()->addDays(7));
 
         // Personal Access Tokens (yang dibuat via createToken)
-        Passport::personalAccessTokensExpireIn(CarbonInterval::days(1));
+        Passport::personalAccessTokensExpireIn(CarbonInterval::minutes(1));
     }
 }

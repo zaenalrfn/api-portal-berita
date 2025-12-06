@@ -4,6 +4,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\Cors;
+use League\OAuth2\Server\Exception\OAuthServerException;
+use Laravel\Passport\Exceptions\OAuthServerException as PassportOAuthException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,5 +24,31 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->renderable(function (OAuthServerException $e, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $e->getMessage() ?: 'Token expired or invalid',
+                ], 401);
+            }
+        });
+
+        $exceptions->renderable(function (PassportOAuthException $e, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $e->getMessage() ?: 'Token expired or invalid',
+                ], 401);
+            }
+        });
+
+        // optional: AuthenticationException fallback
+        $exceptions->renderable(function (AuthenticationException $e, $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $e->getMessage() ?: 'Unauthenticated.',
+                ], 401);
+            }
+        });
     })->create();
