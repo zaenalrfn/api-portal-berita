@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\News;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -27,22 +29,25 @@ class AuthController extends Controller
 
         $user->assignRole('user');
 
-        // Buat token dengan masa berlaku 1 hari
+        // Buat token (personal access token)
         $tokenResult = $user->createToken('token');
-        $token = $tokenResult->accessToken;
+        $accessToken = $tokenResult->accessToken;
 
-        // atur expire
+        // Ambil model token yang dibuat Passport (jika tersedia)
         $tokenModel = $tokenResult->token;
-        $tokenModel->expires_at = now()->addDay(); // 1 hari
-        $tokenModel->save();
+
+        // Ambil expiry yang diset Passport; jika kosong, gunakan fallback 1 hari
+        $expiresAt = $tokenModel && $tokenModel->expires_at
+            ? $tokenModel->expires_at
+            : now()->addDay();
 
         return response()->json([
             'message' => 'Register berhasil',
-            'token' => $token,
-            'expired_at' => $tokenModel->expires_at->toDateTimeString(),
-        ]);
+            'token' => $accessToken,
+            'expired_at' => Carbon::parse($expiresAt)->toDateTimeString(),
+            'token_type' => 'Bearer',
+        ], 201);
     }
-
 
     public function login(Request $request)
     {
@@ -59,25 +64,29 @@ class AuthController extends Controller
             ]);
         }
 
-        // Buat token dengan masa berlaku 1 hari
+        // Buat token (personal access token)
         $tokenResult = $user->createToken('token');
-        $token = $tokenResult->accessToken;
+        $accessToken = $tokenResult->accessToken;
 
         $tokenModel = $tokenResult->token;
-        $tokenModel->expires_at = now()->addDay(); // 1 hari
-        $tokenModel->save();
+
+        $expiresAt = $tokenModel && $tokenModel->expires_at
+            ? $tokenModel->expires_at
+            : now()->addDay();
 
         return response()->json([
             'message' => 'Login berhasil',
-            'token' => $token,
-            'expired_at' => $tokenModel->expires_at->toDateTimeString(),
-        ]);
+            'token' => $accessToken,
+            'expired_at' => Carbon::parse($expiresAt)->toDateTimeString(),
+            'token_type' => 'Bearer',
+        ], 200);
     }
 
     public function getUser(Request $request)
     {
         $user = $request->user();
         $totalUserNews = News::where('user_id', $user->id)->count();
+
         return response()->json([
             'status' => true,
             'user' => $user,
@@ -87,8 +96,18 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $token = $request->user()->token();
-        $token->revoke();
+        // ambil access token model
+        $accessToken = $request->user()->token();
+
+        if ($accessToken) {
+            // Revoke access token
+            $accessToken->revoke();
+
+            // Revoke refresh tokens yang terkait (jika ada)
+            DB::table('oauth_refresh_tokens')
+                ->where('access_token_id', $accessToken->id)
+                ->update(['revoked' => true]);
+        }
 
         return response()->json([
             'message' => 'Logout berhasil'
